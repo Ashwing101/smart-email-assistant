@@ -5,6 +5,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 
@@ -33,23 +34,37 @@ public class EmailGeneratorService {
         String prompt = buildPromt(emailRequest);
 
         Map<String, Object> requestBody = Map.of(
-                "content", new Object[]{
+                "contents", new Object[]{
                         Map.of("parts", new Object[]{
                                 Map.of("text", prompt)
                         })
                 }
         );
 
-        // Do request and get response
 
-        System.out.println("Resquest body is " +  requestBody);
+//        // Do request and get response
+//        ObjectMapper objectMapper = new ObjectMapper();
+//        try {
+//            String jsonBody = objectMapper.writeValueAsString(requestBody);
+//            System.out.println("Request body JSON:\n" + jsonBody);
+//        } catch (Exception e) {
+//            System.out.println("Error serializing request body: " + e.getMessage());
+//        }
+//
+
+//
+//        System.out.println("GeminiApiUrl " +  geminiApiUrl + geminiApiKey);
+
+
 
         String response = webclient.post().uri(geminiApiUrl + geminiApiKey)
                 .header("Content-Type", "application/json")
+                .accept(MediaType.APPLICATION_JSON)
                 .bodyValue(requestBody)
                 .retrieve()
                 .bodyToMono(String.class)
                 .block();
+
 
 
         return extractResponseContent(response);
@@ -91,7 +106,7 @@ public class EmailGeneratorService {
                 prompt.append("Use a ").append(emailRequest.getTone()).append(" tone.");
             }
         }
-    prompt.append("\n Original email: \n");
+    prompt.append("\n Original email: \n").append(emailRequest.getEmail());
     return prompt.toString();
     }
 
